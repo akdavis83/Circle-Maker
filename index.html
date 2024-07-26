@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>Circle Maker</title>
+  <!-- MOBILE––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://api.fonts.coollabs.io/css2?family=Raleway:wght@300;400;600&display=swap" rel="stylesheet">
+  <meta name="description"
+    content="An interactive step by step explanation of the marching squares algorithm for contour finding. Includes a merging metaball implementation using JavaScript!">
+  <!-- CSS––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/skeleton.css">
+  <link rel="stylesheet" href="css/darkskelleton.css" media="(prefers-color-scheme: dark)">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/png" href="favicon3.ico">
+
+  <style>
+    a {
+      color: red;
+      text-decoration: double;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas" width="960" height="960"></canvas>
+  <!-- detect color scheme -->
+  <script type="text/javascript">
+    var secondary = "#F00"
+    var primary = "#333"
+
+    //set the colorscheme
+    if (window.matchMedia) {
+      window.matchMedia("(prefers-color-scheme: dark)").addListener(e => {
+        primary = e.matches
+          ? "#d3d7cf"
+          : "#333";
+        console.log("theme change detected, setting color to", primary);
+      });
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+        primary = "#d3d7cf";
+    }
+  </script>
+
+  <!-- header and intro text -->
+  <div class="container">
+    <section style="height: 85vh;">
+      <div class="row" style="padding-top: 25%">
+        <div class="twelve column">
+          <h1>Circle Maker</h1>
+          <p>(Isaiah 40:22)
+            <br>
+             It is he that sitteth upon the circle of the earth, and the inhabitants thereof are as grasshoppers; that stretcheth out the heavens as a curtain, and spreadeth them out as a tent to dwell in:
+          </p>
+        </div>
+      </div>
+
+      <!-- buttons and sliders for the main demo -->
+      <div class="row">
+        <div class="one-half column">
+          <input id="resolution" style="direction: rtl" type="range" min="5" step="1" max="50" value="10" class="slider"
+            oninput="m.rez = parseInt(this.value); m.generateMap(); document.getElementById('resolutiono').textContent=this.value">
+          <label for="resolution" class="u-pull-left">resolution</label>
+          <output id="resolutiono" class="u-pull-right" name="result">10</output class="u-pull-right">
+
+          <input id="density" type="range" min="5" step="1" max="20" value="12" class="slider"
+            oninput="m.circleCount = parseInt(this.value); m.setCircleRadius(64-2*parseInt(this.value)); document.getElementById('densityo').textContent=this.value">
+          <label for="resolution" class="u-pull-left">blob density</label>
+          <output id="densityo" class="u-pull-right" name="result">12</output class="u-pull-right">
+
+        </div>
+        <div class="one-half column">
+          <button type="button" class="u-full-width" name="button"
+            onclick="m.interpolation=!m.interpolation; this.textContent = m.interpolation?'interpolation on':'interpolation off'">interpolation
+            on</button>
+          <button type="button" class="u-full-width" name="button"
+            onclick="m.showCircles=!m.showCircles; this.textContent = m.showCircles?'hide circles':'show circles'">show
+            circles</button>
+        </div>
+      </div>
+
+    </section>
+    <noscript>
+      <style>
+        #explanation {
+          opacity: 1 !important;
+        }
+      </style>
+      <em>JavaScript is required to see the interactive demo.</em>
+    </noscript>
+    <section id="explanation">
+      <!-- the explanation section -->
+      <div class="row">
+        <div class="twelve column">
+          <h2>Circles</h2>
+          <p><a href="https://akdavis83.github.io/Space2/">Earth's</a> 
+           Creator is sovereign, powerful, almighty, and He looks down upon us constantly. When Israel went to take the Promised Land they said that they were as grasshoppers in the sight of the giants in the land but they missed the proper perspective because they were giants in the eyes of God because He had already given them the victory. By His power, by His might, by His omnipotence we are guided, kept safe, and led on until eternity. He sits in the heavens, He visits the earth, He is Lord of His creation, and He is waiting for you to fully yield to Him on a daily basis. When we put God in His proper place, and when we see and relate to each other in the proper perspective of God as first place, everything else falls into place because the word of God promises that it will be so.
+          </p>
+            <br>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="one-half column">
+          <h3>(2 Samuel 5:23)</h3>
+          <p>23 And when David enquired of the LORD, he said, Thou shalt not go up; but fetch a compass behind them, and come upon them over against the mulberry trees.
+            <br><br>
+           Whenever the battle was on for David, he would enquire of the Lord and the Lord would give him supernatural strategies for victory. In this particular occasion, David was told to circle around behind the enemy to ambush and attack them. Joshua formulated a similar strategy against Ai when the Lord gave him the victory. Consult the Lord first in all things, and keep Him the closest in your circle of relationships.
+          </p>
+        </div>
+        <div class="one-half column">
+          <canvas id="gridValuesDemo" class="u-full-width" width="460" height="460"></canvas>
+        </div>
+      </div>
+      <hr>
+
+      <div class="row">
+        <div class="one-half column">
+          <h3>(Joshua 6:2-5)</h3>
+          <p> 2 And the LORD said unto Joshua, See, I have given into thine hand Jericho, and the king thereof, and the mighty men of valour. 3 And ye shall compass the city, all ye men of war, and go round about the city once. Thus shalt thou do six days. 4 And seven priests shall bear before the ark seven trumpets of rams’ horns: and the seventh day ye shall compass the city seven times, and the priests shall blow with the trumpets. 5 And it shall come to pass, that when they make a long blast with the ram’s horn, and when ye hear the sound of the trumpet, all the people shall shout with a great shout; and the wall of the city shall fall down flat, and the people shall ascend up every man straight before him.
+            <br><br><br>
+           Marching orders from the Commander In Chief: circle the city one time for 6 days and circle the city 7 times for one day. The enemy saw the spectacle, they watched for six days wondering what in the world is happening? They didn't take any time to attack and they probably mocked what they saw occuring. At this point in time nations were starting to hear about the Lord and His victories, and some were starting to fear but Jericho stood securely and defiantly. It wasn't the method but the powerful God of Israel behind the method that made the foolishness effective. In essence this is the gospel message, the foolishness of preaching, the foolishness of obedience and righteousness directed by God bringing the walls down and bringing the victory in.
+          </p>
+        </div>
+        <div class="one-half column">
+          <canvas id="gridElementTypes" class="u-full-width" width="460" height="460"></canvas>
+        </div>
+      </div>
+      <hr>
+
+      <div class="row">
+        <div class="twelve column">
+          <h3>(Exodus 14:32-34)</h3>
+          <p>32 But as for you, your carcases, they shall fall in this wilderness. 33 And your children shall wander in the wilderness forty years, and bear your whoredoms, until your carcases be wasted in the wilderness. 34 After the number of the days in which ye searched the land, even forty days, each day for a year, shall ye bear your iniquities, even forty years, and ye shall know my breach of promise. 
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="one-half column">
+          <canvas id="coarseNoInterp" class="u-full-width" width="460" height="460"></canvas>
+        </div>
+        <div class="one-half column">
+          <canvas id="noInterp" class="u-full-width" width="460" height="460"></canvas>
+        </div>
+      </div>
+      <hr>
+
+      <div class="row">
+        <div class="twelve column">
+          <h3>Going In Circles?</h3>
+          <p>
+            The fear, doubt, and unbelief of the people caused them to go agaisnt God in a way He never intended, and this in turn caused them to go around in circles for forty years in the wilderness. Do not make the same mistake with you life eternal. Doubt no longer, fear no more what lies beyond, Christ extends His hand for salvation and His righteousness is available for all who will receive Him.
+            <br><br>
+           Jesus Christ is the way of salvation. He will never turn away anyone who goes to Him to receive Him in faith. Whatever you have done wrong in the past is not greater than what Christ Jesus has already done on your behalf. Romans 10:9-10 says that if you will believe in your heart, and confess with your mouth, Jesus Christ as Lord and Savior, you shall be saved. He is mighty to save, heal, and deliver, and He delivers for eternal life with Him. Check out this site for more on salvation: <a href="https://akdavis83.github.io/Lost/">Salvation.</a>
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="one-half column">
+          <canvas id="interpolatedDemo" class="u-full-width" width="460" height="460"></canvas>
+        </div>
+        <div class="one-half column">
+          <canvas id="highResDemo" class="u-full-width" width="460" height="460"></canvas>
+        </div>
+      </div>
+      <hr>
+      <div class="row" style="margin-bottom:10%;">
+        <div class="twelve column">
+          <h3>Github</h3>
+          <p>Visit my GitHub repository:
+
+            
+            <a href="https://github.com/akdavis83">Alan Davis.</a> Check out the code for this website here: <a href="https://github.com/akdavis83/Circle-Maker">my code</a>
+            for this page on GitHub.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  </div>
+  <script type="text/javascript" src="scripts/script_instanced.js"></script>
+  <script type="text/javascript" src="scripts/individualElements.js"></script>
+  <script type="text/javascript" src="scripts/script.js"></script>
+</body>
+<script>if (!!localStorage.getItem("_dev") && !sessionStorage.getItem("_swa") && document.referrer.indexOf(location.protocol + "//" + location.host) !== 0) { fetch("https://counter.dev/track?" + new URLSearchParams({ referrer: document.referrer, screen: screen.width + "x" + screen.height, user: "missing-user", utcoffset: "1" })) }; sessionStorage.setItem("_swa", "1");</script>
+
+</html>
